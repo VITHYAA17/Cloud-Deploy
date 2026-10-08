@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clouddeploy-app-deployment
+  labels:
+    app: clouddeploy-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: clouddeploy-app
+  template:
+    metadata:
+      labels:
+        app: clouddeploy-app
+    spec:
+      containers:
+      - name: clouddeploy-app
+        # The image will be updated dynamically by Jenkins during deployment
+        image: your-dockerhub-username/clouddeploy-app:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
