@@ -1,0 +1,36 @@
+rules:
+  - id: spring-boot-unauthenticated-actuator
+    languages: [properties, yaml]
+    severity: WARNING
+    message: "Management endpoints exposure should be restricted in production environments."
+    pattern-regex: 'management\.endpoints\.web\.exposure\.include\s*=\s*\*|management\.endpoints\.web\.exposure\.include:\s*"\*"'
+
+  - id: hardcoded-secret-in-code
+    languages: [java]
+    severity: ERROR
+    message: "Hardcoded secret or sensitive token detected in Java source code. Use environment variables or Secrets Manager instead."
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $TYPE $VAR = "...";
+          - pattern: |
+              String $VAR = "$SECRET";
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: '(?i)(password|passwd|secret|apikey|api_key|token|private_key)'
+      - metavariable-regex:
+          metavariable: $SECRET
+          regex: '.{8,}'
+
+  - id: insecure-http-usage
+    languages: [java]
+    severity: WARNING
+    message: "Potential insecure HTTP connection string. Ensure HTTPS is used for external API communication."
+    pattern-regex: 'http://(?!localhost|127\.0\.0\.1|0\.0\.0\.0)[a-zA-Z0-9.-]+'
+
+  - id: path-traversal-file-access
+    languages: [java]
+    severity: ERROR
+    message: "Unsanitized input used in file constructor can cause Path Traversal vulnerability (CWE-22)."
+    pattern: |
+      new File($INPUT, ...)

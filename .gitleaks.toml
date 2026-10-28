@@ -1,0 +1,37 @@
+# Gitleaks configuration file for secret scanning in CI/CD pipeline
+title = "CloudDeploy Gitleaks Configuration"
+
+[extend]
+# Use default gitleaks ruleset
+useDefault = true
+
+[allowlist]
+description = "Global allowlist for non-sensitive sample files and test tokens"
+paths = [
+    '''pom\.xml''',
+    '''README\.md''',
+    '''\.gitleaks\.toml'''
+]
+regexes = [
+    '''your-dockerhub-username''',
+    '''your-gcp-project-id''',
+    '''gcp-service-account-key'''
+]
+
+# Custom rule for GCP Service Account JSON keys
+[[rules]]
+id = "gcp-service-account-private-key"
+description = "Detected Google Cloud Service Account Private Key"
+regex = '''"private_key":\s*"-----BEGIN PRIVATE KEY-----[A-Za-z0-9+\/=\s]+-----END PRIVATE KEY-----"'''
+secretGroup = 0
+keywords = ["private_key", "BEGIN PRIVATE KEY"]
+severity = "CRITICAL"
+
+# Custom rule for Generic API Keys & Tokens
+[[rules]]
+id = "generic-api-key"
+description = "Detected Generic API Key or Bearer Token"
+regex = '''(?i)(api[_-]?key|access[_-]?token|secret[_-]?key)\s*[:=]\s*['\"][A-Za-z0-9_\-]{20,}['\"]'''
+secretGroup = 0
+keywords = ["api_key", "apikey", "access_token", "secret_key"]
+severity = "HIGH"
