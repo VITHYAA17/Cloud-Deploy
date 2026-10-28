@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clouddeploy-app-staging
+  namespace: staging
+  labels:
+    app: clouddeploy-app
+    env: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clouddeploy-app
+      env: staging
+  template:
+    metadata:
+      labels:
+        app: clouddeploy-app
+        env: staging
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: clouddeploy-app
+        image: your-dockerhub-username/clouddeploy-app:latest
+        ports:
+        - containerPort: 8080
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "staging"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
